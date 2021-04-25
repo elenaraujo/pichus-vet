@@ -6,7 +6,8 @@ const mailer = require('../../modules/mailer')
 
 const authConfig = require('../../config/auth.json')
 
-const User = require('../models/user')
+const Customer = require('../models/customer')
+const Vet = require('../models/vet')
 
 const router = express.Router()
 
@@ -16,11 +17,72 @@ function generateToken(params = {}) {
   })
 }
 
+function checkUserKind(body) {
+  if (body.kind === 'customer')
+    return Customer
+  
+  if (body.kind === 'vet')
+    return Vet
+}
+
+const verifyKind = async (req, res, User) => {
+  const { kind, registry, email } = req.body
+  let user = null
+
+  if (!kind)
+      return res.status(400).send({ error: 'Kind not informed' })
+
+  switch (kind) {
+    case 'vet':
+      user = await User.findOne({ registry }).select('+password')
+      break;
+    case 'customer':
+      user = await User.findOne({ email }).select('+password')
+      break;
+    default:
+      user = { error: 'Invalid kind informed' }
+  }
+
+  return user
+}
+
 router.post('/register', async (req, res) => {
-  const { email } = req.body
   try {
-    if (await User.findOne({ email }))
-      return res.status(400).send({ error: 'User already exists' })
+    const User = checkUserKind(req.body)
+
+    const { email, cpf, registry, crmv } = req.body
+    const isVet = req.body.kind === 'vet'
+    let orParams = [{ email }, { cpf }]
+
+    if (isVet)
+      orParams = [...orParams, { registry }, { crmv }]
+
+    const userExists = await User.findOne({ $or: orParams })
+    const propertyAlreadyTaken = [];
+
+    if (userExists) {
+      const { 
+        email: ueEmail, 
+        cpf: ueCPF, 
+        registry: ueRegistry, 
+        crmv: ueCRMV
+      } = userExists;
+
+      ueEmail === email && propertyAlreadyTaken.push("Email");
+      ueCPF === cpf && propertyAlreadyTaken.push("CPF");
+
+      if (isVet) {
+        ueRegistry === registry && propertyAlreadyTaken.push("Registry");
+        ueCRMV === crmv && propertyAlreadyTaken.push("CRMV");
+      }
+    }
+
+    if (propertyAlreadyTaken.length > 0)
+      return res
+        .status(409)
+        .send({ 
+          error: `Properties are already registered: ${propertyAlreadyTaken.join(", ")}` 
+         });
 
     const user = await User.create(req.body)
 
@@ -31,22 +93,24 @@ router.post('/register', async (req, res) => {
       token: generateToken({ id: user.id }),
     })
   } catch (err) {
-    return res.status(400).send({ error: 'Registration failed' })
+    return res.status(400).send({ "error": "Registration failed" })
   }
 })
 
 router.post('/authenticate', async (req, res) => {
-  const { email, password } = req.body
+  const User = checkUserKind(req.body)
+  const password = req.body.password
 
-  const user = await User.findOne({ email }).select('+password')
+  const user = await verifyKind(req, res, User)
 
-  if (!user) {
+  if (user.error)
+    return res.status(400).send({ error: user.error })
+ 
+  if (!user)
     return res.status(400).send({ error: 'User not found' })
-  }
 
-  if (!(await bcrypt.compare(password, user.password))) {
+  if (!(await bcrypt.compare(password, user.password)))
     return res.status(400).send({ error: 'Invalid password' })
-  }
 
   user.password = undefined
 
@@ -57,14 +121,16 @@ router.post('/authenticate', async (req, res) => {
 })
 
 router.post('/forgot_password', async (req, res) => {
-  const { email } = req.body
-
   try {
-    const user = await User.findOne({ email })
+    const User = checkUserKind(req.body)
 
-    if (!user) {
+    const user = await verifyKind(req, res, User)
+
+    if (user.error)
+      return res.status(400).send({ error: user.error })
+
+    if (!user)
       return res.status(400).send({ error: 'User not found' })
-    }
 
     const token = crypto.randomBytes(20).toString('hex')
 
@@ -80,17 +146,14 @@ router.post('/forgot_password', async (req, res) => {
 
     mailer.sendMail(
       {
-        to: email,
+        to: req.body.email,
         from: 'pichus@petshop.com',
         template: 'auth/forgot_password',
         context: { token },
       },
       err => {
-        if (err) {
-          return res
-            .status(400)
-            .send({ error: 'Cannot send forgot password email' })
-        }
+        if (err)
+          return res.status(400).send({ error: 'Cannot send forgot password email' })
 
         return res.send()
       },
@@ -101,28 +164,24 @@ router.post('/forgot_password', async (req, res) => {
 })
 
 router.post('/reset_password', async (req, res) => {
-  const { email, token, password } = req.body
+  const { User, login } = checkUserKind(req.body)
+  const { token, password } = req.body
 
   try {
-    const user = await User.findOne({ email }).select(
+    const user = await User.findOne({ login }).select(
       '+passwordResetToken passwordResetExpires',
     )
 
-    if (!user) {
+    if (!user)
       return res.status(400).send({ error: 'User not found' })
-    }
 
-    if (token !== user.passwordResetToken) {
+    if (token !== user.passwordResetToken)
       return res.status(400).send({ error: 'Token invalid' })
-    }
 
     const now = new Date()
 
-    if (now > user.passwordResetExpires) {
-      return res
-        .status(400)
-        .send({ error: 'Token expired, generate a new one' })
-    }
+    if (now > user.passwordResetExpires)
+      return res.status(400).send({ error: 'Token expired, generate a new one' })
 
     user.password = password
 
