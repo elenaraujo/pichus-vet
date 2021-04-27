@@ -25,25 +25,31 @@ function checkUserKind(body) {
     return Vet
 }
 
-const verifyKind = async (req, res, User) => {
+const verifyKind = (req, res) => {
   const { kind, registry, email } = req.body
-  let user = null
+  let findKind = null
 
   if (!kind)
       return res.status(400).send({ error: 'Kind not informed' })
 
   switch (kind) {
     case 'vet':
-      user = await User.findOne({ registry }).select('+password')
+      findKind = { registry }
       break;
     case 'customer':
-      user = await User.findOne({ email }).select('+password')
+      findKind = { email }
       break;
     default:
-      user = { error: 'Invalid kind informed' }
+      findKind = { error: 'Invalid kind informed' }
   }
 
-  return user
+  if (!findKind)
+    return res.status(400).send({ error: 'Problem while kind verification' })
+  
+  if (findKind.error)
+    return res.status(400).send({ error: findKind.error })
+
+  return findKind
 }
 
 router.post('/register', async (req, res) => {
@@ -81,7 +87,7 @@ router.post('/register', async (req, res) => {
       return res
         .status(409)
         .send({ 
-          error: `Properties are already registered: ${propertyAlreadyTaken.join(", ")}` 
+          error: `Following properties are already registered: ${propertyAlreadyTaken.join(", ")}` 
          });
 
     const user = await User.create(req.body)
@@ -101,11 +107,9 @@ router.post('/authenticate', async (req, res) => {
   const User = checkUserKind(req.body)
   const password = req.body.password
 
-  const user = await verifyKind(req, res, User)
+  const findKind = verifyKind(req, res)
+  const user = await User.findOne(findKind).select('+password')
 
-  if (user.error)
-    return res.status(400).send({ error: user.error })
- 
   if (!user)
     return res.status(400).send({ error: 'User not found' })
 
@@ -124,7 +128,8 @@ router.post('/forgot_password', async (req, res) => {
   try {
     const User = checkUserKind(req.body)
 
-    const user = await verifyKind(req, res, User)
+    const findKind = verifyKind(req, res)
+    const user = await User.findOne(findKind)
 
     if (user.error)
       return res.status(400).send({ error: user.error })
@@ -146,7 +151,7 @@ router.post('/forgot_password', async (req, res) => {
 
     mailer.sendMail(
       {
-        to: req.body.email,
+        to: user.email,
         from: 'pichus@petshop.com',
         template: 'auth/forgot_password',
         context: { token },
@@ -155,7 +160,7 @@ router.post('/forgot_password', async (req, res) => {
         if (err)
           return res.status(400).send({ error: 'Cannot send forgot password email' })
 
-        return res.send()
+        return res.send({ status: 'Email successfully sent' })
       },
     )
   } catch (err) {
@@ -164,11 +169,13 @@ router.post('/forgot_password', async (req, res) => {
 })
 
 router.post('/reset_password', async (req, res) => {
-  const { User, login } = checkUserKind(req.body)
+  const User = checkUserKind(req.body)
   const { token, password } = req.body
 
   try {
-    const user = await User.findOne({ login }).select(
+
+    const findKind = verifyKind(req, res)
+    const user = await User.findOne(findKind).select(
       '+passwordResetToken passwordResetExpires',
     )
 
@@ -187,7 +194,7 @@ router.post('/reset_password', async (req, res) => {
 
     await user.save()
 
-    res.send()
+    res.send({ status: 'Password successfully updated' })
   } catch (err) {
     res.status(400).send({ error: 'Cannot reset password, try again' })
   }
