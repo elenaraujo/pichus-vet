@@ -1,5 +1,5 @@
 import { React, useState } from 'react'
-import LogoButton from '../atoms/LogoButton'
+import LogoButton from '../LogoButton'
 import { useRegisterView } from './styles'
 import FaceIcon from '@material-ui/icons/Face'
 import TextField from '@material-ui/core/TextField'

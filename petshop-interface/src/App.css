@@ -1,4 +1,44 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
-  background-color: #faeceb;
-  font-size: 16;
+  margin: 0px;
+  --type-first: 'Open Sans', Arial, sans-serif;
+  --type-second: 'Open Sans', Georgia;
+  font-family: var(--type-first);
+  min-width: 600px;
+  background-color: #f9f9f9;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0px;
+}
+
+ul,
+li {
+  list-style: none;
+  padding: 0px;
+  margin: 0px;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input {
+  display: block;
+  font-size: 1rem;
+  font-family: var(--type-first);
+}
+
+a {
+  text-decoration: none;
+  color: #333;
 }

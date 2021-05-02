@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { useLogoButton } from './styles'
-import logo from '../../assets/img/pets.png'
+import logo from '../assets/img/pichus-logo.png'
 
 function LogoButton() {
   const classes = useLogoButton()
@@ -12,7 +12,7 @@ function LogoButton() {
         <img
           className={classes.logoImg}
           src={logo}
-          alt='Silhueta de cão e gato'
+          alt='Logo estilizada da Pichus escrito Pichus e com uma pegada de patinha'
         />
       </Link>
     </div>

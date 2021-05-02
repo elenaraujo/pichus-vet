@@ -1,5 +1,5 @@
 import React from 'react'
-import Button from '@material-ui/core/Button'
+import { Button } from '@material-ui/core'
 import { useNewButton } from './styles'
 
 function NewButton(props) {
