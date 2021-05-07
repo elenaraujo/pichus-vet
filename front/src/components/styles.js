@@ -19,6 +19,11 @@ export const useLogoButton = makeStyles(theme => ({
     display: 'flex',
     justifyContent: 'center',
   },
+  logo: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginTop: '0.75rem',
+  },
 }))
 
 export const useFooter = makeStyles(theme => ({
@@ -48,9 +53,16 @@ export const useHeader = makeStyles(theme => ({
     backgroundColor: '#73c3bc',
     height: 80,
     display: 'flex',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   logo: {
-    maxWidth: 44,
+    paddingTop: 90,
   },
+  menu: {
+    alignSelf: 'center',
+    margin: 10,
+  },
+  teste: {
+    fontSize: 35,
+  }
 }))
