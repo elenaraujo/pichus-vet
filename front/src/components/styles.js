@@ -63,6 +63,6 @@ export const useHeader = makeStyles(theme => ({
     margin: 10,
   },
   teste: {
-    fontSize: 35,
+    fontSize: 45,
   }
 }))

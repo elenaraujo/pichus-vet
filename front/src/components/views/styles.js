@@ -19,7 +19,7 @@ export const useHomeView = makeStyles(theme => ({
     textAlign: 'center',
   },
   body: {
-    minHeight: window.innerHeight - 335
+    minHeight: window.innerHeight
   }
 }))
 
