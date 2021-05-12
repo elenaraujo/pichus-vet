@@ -2,12 +2,17 @@
   box-sizing: border-box;
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
 body {
   margin: 0px;
-  --type-first: 'Open Sans', Arial, sans-serif;
-  --type-second: 'Open Sans', Georgia;
+  padding: 0px;
+  --type-first: 'Open Sans', sans-serif;
+  --type-second: 'Open Sans Condensed', sans-serif;
   font-family: var(--type-first);
-  min-width: 600px;
   background-color: #f9f9f9;
 }
 

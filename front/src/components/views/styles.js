@@ -18,9 +18,6 @@ export const useHomeView = makeStyles(theme => ({
     fontFamily: 'Kurale',
     textAlign: 'center',
   },
-  body: {
-    minHeight: window.innerHeight
-  }
 }))
 
 export const useRegisterView = makeStyles(theme => ({

@@ -1,4 +1,5 @@
 import { makeStyles } from '@material-ui/core/styles'
+import { HALF_BAKED, ALBESCENT_WHITE, MYSTIC, CADET_BLUE } from '../theme'
 
 export const useNewButton = makeStyles(theme => ({
   button: {
@@ -30,16 +31,17 @@ export const useFooter = makeStyles(theme => ({
   root: {
     height: 127,
     justifyContent: 'center',
-
+    position: 'absolute',
+    bottom: 0,
   },
   div: {
     height: 78,
     minWidth: '100%',
-    borderTop: 'solid 2px #eef1f5',
-    borderBottom: 'solid 2px #eef1f5',
+    borderTop: `solid 2px ${MYSTIC}`,
+    borderBottom: `solid 2px ${MYSTIC}`,
   },
   p: {
-    color: '#9fafc1',
+    color: CADET_BLUE,
     margin: '15.5px 0 15.5px 35px',
   },
   img: {
@@ -50,7 +52,7 @@ export const useFooter = makeStyles(theme => ({
 
 export const useHeader = makeStyles(theme => ({
   root: {
-    backgroundColor: '#73c3bc',
+    backgroundColor: HALF_BAKED,
     height: 80,
     display: 'flex',
     justifyContent: 'space-between',
@@ -58,11 +60,12 @@ export const useHeader = makeStyles(theme => ({
   logo: {
     paddingTop: 90,
   },
-  menu: {
+  menuDiv: {
     alignSelf: 'center',
     margin: 10,
   },
-  teste: {
-    fontSize: 45,
-  }
+  menuIcon: {
+    fontSize: '2.5rem',
+    color: ALBESCENT_WHITE,
+  },
 }))
